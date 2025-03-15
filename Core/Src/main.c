@@ -63,26 +63,42 @@ static void MX_TIM2_Init(void);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
-/*设置鼠标指针坐标�?*/
 static void GetPointerData(uint8_t *pbuf)
 {
-  int8_t keyboard = 0;
+  // int8_t keyboard = 0;
 	
-	if(HAL_GPIO_ReadPin(KEY0_GPIO_Port,KEY0_Pin) == 0)
-	{
-		if(HAL_GPIO_ReadPin(KEY0_GPIO_Port,KEY0_Pin) == 0)
-		{
-			//printf("KEY0 Pressed : z/Z\r\n");
-			keyboard = 0x1D;
-			while(!HAL_GPIO_ReadPin(KEY0_GPIO_Port,KEY0_Pin));
-		}
-	}
-	//合成键盘数据�?
+	// if(HAL_GPIO_ReadPin(KEY0_GPIO_Port,KEY0_Pin) == 0)
+	// {
+	// 	if(HAL_GPIO_ReadPin(KEY0_GPIO_Port,KEY0_Pin) == 0)
+	// 	{
+	// 		//printf("KEY0 Pressed : z/Z\r\n");
+	// 		keyboard = 0x1D;
+	// 		while(!HAL_GPIO_ReadPin(KEY0_GPIO_Port,KEY0_Pin));
+	// 	}
+	// }
+	// //合成键盘数据
 	for(uint8_t i=0;i<8;i++)
 	{
-		if(i == 2) pbuf[i] = keyboard;
+		//if(i == 2) pbuf[i] = keyboard;
+    if(i == 2) pbuf[i] = 0x1D;
 		else pbuf[i] = 0;
 	}
+
+  // if(HAL_GPIO_ReadPin(KEY0_GPIO_Port,KEY0_Pin) == 1){
+  //   HAL_Delay(20);
+  //   if(HAL_GPIO_ReadPin(KEY0_GPIO_Port,KEY0_Pin) == 1){
+  //     for (int i = 0; i < 8; i++) {
+  //       pbuf[i] = 0;
+  //     }
+  //     // 设置“z”按键的扫描码
+  //     pbuf[2] = 0x1D;
+  //     while(HAL_GPIO_ReadPin(KEY0_GPIO_Port,KEY0_Pin) == 0);
+  //   }
+  // }else{
+  //   for (int i = 0; i < 8; i++) {
+  //     pbuf[i] = 0;
+  //   }
+  // }
 }
 
 /* USER CODE END 0 */
