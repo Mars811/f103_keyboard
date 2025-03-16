@@ -63,50 +63,17 @@ static void MX_TIM2_Init(void);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
-/* ----------------------- 获取键位 ------------------------*/
+/* 获取键位 */
 static void GetPointerData(uint8_t *pbuf)
 {
-  // int8_t keyboard = 0;
-	
-	// if(HAL_GPIO_ReadPin(KEY0_GPIO_Port,KEY0_Pin) == 0)
-	// {
-	// 	if(HAL_GPIO_ReadPin(KEY0_GPIO_Port,KEY0_Pin) == 0)
-	// 	{
-	// 		//printf("KEY0 Pressed : z/Z\r\n");
-	// 		keyboard = 0x1D;
-	// 		while(!HAL_GPIO_ReadPin(KEY0_GPIO_Port,KEY0_Pin));
-	// 	}
-	// }
-	// //合成键盘数据
-
-	// for(uint8_t i=0;i<8;i++)
-	// {
-  //   if(i == 2) pbuf[i] = 0x1D;
-	// 	else pbuf[i] = 0;
-	// }
-
-
-  // if(HAL_GPIO_ReadPin(KEY0_GPIO_Port,KEY0_Pin) == 1){
-  //   if(HAL_GPIO_ReadPin(KEY0_GPIO_Port,KEY0_Pin) == 1){
-  //     for (int i = 0; i < 8; i++) {
-  //       pbuf[i] = 0;
-  //     }
-  //     // 设置“z”按键的扫描码
-  //     pbuf[2] = 0x1D;
-  //     while(!HAL_GPIO_ReadPin(KEY0_GPIO_Port,KEY0_Pin));  //不是0....
-  //   }
-  // }else{
-  //   for (int i = 0; i < 8; i++) {
-  //     pbuf[i] = 0;
-  //   }
-  // }
   // 清空报告缓冲区（8字节全0）
   memset(pbuf, 0, 8);
-  
-  // 检测KEY0按下（假设按下为低电平）
+
   if(HAL_GPIO_ReadPin(KEY0_GPIO_Port, KEY0_Pin) == 1) {
     pbuf[2] = 0x1D;
-    // HAL_Delay(20); // 简单去抖动（需确保不影响USB响应）
+  }
+  if(HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_3) == 1) {
+    pbuf[2] = 0x1E;
   }
 }
 
@@ -302,18 +269,23 @@ static void MX_GPIO_Init(void)
   /*Configure GPIO pin : KEY0_Pin */
   GPIO_InitStruct.Pin = KEY0_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
-  // GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Pull = GPIO_PULLDOWN;
   HAL_GPIO_Init(KEY0_GPIO_Port, &GPIO_InitStruct);
 
 /* USER CODE BEGIN MX_GPIO_Init_2 */
+  /* GPIO配置 */
+  GPIO_InitStruct.Pin = GPIO_PIN_3;
+  GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
+  GPIO_InitStruct.Pull = GPIO_PULLDOWN;
+  HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
+
 /* USER CODE END MX_GPIO_Init_2 */
 }
 
 /* USER CODE BEGIN 4 */
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 {
-  /* --------------------------- 定时器中断 ------------------------------------------*/
+  /* 定时器中断回调函数 */
   static volatile uint32_t counter = 0;
     if (htim->Instance == TIM2)
     {
