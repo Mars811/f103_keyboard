@@ -70,13 +70,13 @@ static void GetPointerData(uint8_t *pbuf)
   memset(pbuf, 0, 8);
 
   if(HAL_GPIO_ReadPin(KEY0_GPIO_Port, KEY0_Pin) == 1) {
-    pbuf[0] = 0x01;   // 左Ctrl修饰键
-    pbuf[2] = 0x19;   // V键
+    // pbuf[0] = 0x01;   // 左Ctrl修饰键
+    pbuf[2] = 0x52;   // V键
     led_flash();
   }
   if(HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_3) == 1) {
-    pbuf[0] = 0x01;   // 左Ctrl修饰键
-    pbuf[2] = 0x06;   // C键
+    // pbuf[0] = 0x01;   // 左Ctrl修饰键
+    pbuf[2] = 0x51;   // C键
     led_flash();
   }
 }
