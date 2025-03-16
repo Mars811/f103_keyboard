@@ -72,10 +72,12 @@ static void GetPointerData(uint8_t *pbuf)
   if(HAL_GPIO_ReadPin(KEY0_GPIO_Port, KEY0_Pin) == 1) {
     pbuf[0] = 0x01;   // 左Ctrl修饰键
     pbuf[2] = 0x19;   // V键
+    led_flash();
   }
   if(HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_3) == 1) {
     pbuf[0] = 0x01;   // 左Ctrl修饰键
     pbuf[2] = 0x06;   // C键
+    led_flash();
   }
 }
 
@@ -114,6 +116,7 @@ int main(void)
   MX_USB_DEVICE_Init();
   MX_TIM2_Init();
   /* USER CODE BEGIN 2 */
+  /* 主函数 */
   HAL_TIM_Base_Start_IT(&htim2);
 
   /* USER CODE END 2 */
@@ -267,6 +270,7 @@ static void MX_GPIO_Init(void)
   /* GPIO Ports Clock Enable */
   __HAL_RCC_GPIOD_CLK_ENABLE();
   __HAL_RCC_GPIOA_CLK_ENABLE();
+  __HAL_RCC_GPIOC_CLK_ENABLE();
 
   /*Configure GPIO pin : KEY0_Pin */
   GPIO_InitStruct.Pin = KEY0_Pin;
@@ -281,10 +285,40 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Pull = GPIO_PULLDOWN;
   HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
+  GPIO_InitStruct.Pin = GPIO_PIN_13;
+  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
+  HAL_GPIO_WritePin(GPIOC, GPIO_PIN_13, 1);
+
 /* USER CODE END MX_GPIO_Init_2 */
 }
 
 /* USER CODE BEGIN 4 */
+void delay_us(uint32_t xus)
+{
+  SysTick->LOAD = 6 * xus; 
+  SysTick->VAL = 0x00; 
+  SysTick->CTRL = 0X00000001; 
+  while(!(SysTick->CTRL & 0X00010000))
+  {
+    if((SysTick->CTRL &= 0X00000001)==0)
+      SysTick->CTRL |= 0X00000001; 
+  }
+  SysTick->CTRL = 0X00000000; 
+}
+
+void delay_ms(uint32_t xms){
+  delay_us(1000 * xms);
+}
+
+void led_flash(void){
+  HAL_GPIO_WritePin(GPIOC, GPIO_PIN_13, 0);
+  delay_ms(50);
+  HAL_GPIO_WritePin(GPIOC, GPIO_PIN_13, 1);
+}
+
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 {
   /* 定时器中断回调函数 */
