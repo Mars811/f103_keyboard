@@ -48,7 +48,7 @@ UART_HandleTypeDef huart1;
 /* USER CODE BEGIN PV */
 extern USBD_HandleTypeDef hUsbDeviceFS;
 #define CURSOR_STEP 7
-uint8_t HID_Buffer[4];
+uint8_t HID_Buffer[8];
 
 /* USER CODE END PV */
 
@@ -63,6 +63,7 @@ static void MX_TIM2_Init(void);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
+/* ----------------------- 获取键位 ------------------------*/
 static void GetPointerData(uint8_t *pbuf)
 {
   // int8_t keyboard = 0;
@@ -77,28 +78,36 @@ static void GetPointerData(uint8_t *pbuf)
 	// 	}
 	// }
 	// //合成键盘数据
-	for(uint8_t i=0;i<8;i++)
-	{
-		//if(i == 2) pbuf[i] = keyboard;
-    if(i == 2) pbuf[i] = 0x1D;
-		else pbuf[i] = 0;
-	}
+
+	// for(uint8_t i=0;i<8;i++)
+	// {
+  //   if(i == 2) pbuf[i] = 0x1D;
+	// 	else pbuf[i] = 0;
+	// }
+
 
   // if(HAL_GPIO_ReadPin(KEY0_GPIO_Port,KEY0_Pin) == 1){
-  //   HAL_Delay(20);
   //   if(HAL_GPIO_ReadPin(KEY0_GPIO_Port,KEY0_Pin) == 1){
   //     for (int i = 0; i < 8; i++) {
   //       pbuf[i] = 0;
   //     }
   //     // 设置“z”按键的扫描码
   //     pbuf[2] = 0x1D;
-  //     while(HAL_GPIO_ReadPin(KEY0_GPIO_Port,KEY0_Pin) == 0);
+  //     while(!HAL_GPIO_ReadPin(KEY0_GPIO_Port,KEY0_Pin));  //不是0....
   //   }
   // }else{
   //   for (int i = 0; i < 8; i++) {
   //     pbuf[i] = 0;
   //   }
   // }
+  // 清空报告缓冲区（8字节全0）
+  memset(pbuf, 0, 8);
+  
+  // 检测KEY0按下（假设按下为低电平）
+  if(HAL_GPIO_ReadPin(KEY0_GPIO_Port, KEY0_Pin) == 1) {
+    pbuf[2] = 0x1D;
+    // HAL_Delay(20); // 简单去抖动（需确保不影响USB响应）
+  }
 }
 
 /* USER CODE END 0 */
@@ -293,7 +302,8 @@ static void MX_GPIO_Init(void)
   /*Configure GPIO pin : KEY0_Pin */
   GPIO_InitStruct.Pin = KEY0_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
-  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  // GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Pull = GPIO_PULLDOWN;
   HAL_GPIO_Init(KEY0_GPIO_Port, &GPIO_InitStruct);
 
 /* USER CODE BEGIN MX_GPIO_Init_2 */
@@ -303,19 +313,16 @@ static void MX_GPIO_Init(void)
 /* USER CODE BEGIN 4 */
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 {
+  /* --------------------------- 定时器中断 ------------------------------------------*/
   static volatile uint32_t counter = 0;
     if (htim->Instance == TIM2)
     {
-      /* check Joystick state every polling interval (10ms) */
+      // 每10ms执行一次PC的轮询回应
       if(counter++ == USBD_HID_GetPollingInterval(&hUsbDeviceFS))
       {
-      GetPointerData(HID_Buffer);
-        
-      /* send data though IN endpoint*/
-      USBD_HID_SendReport(&hUsbDeviceFS, HID_Buffer, sizeof(HID_Buffer));
-
-      /* 重置counter */
-      counter = 0;
+        GetPointerData(HID_Buffer);
+        USBD_HID_SendReport(&hUsbDeviceFS, HID_Buffer, sizeof(HID_Buffer));
+        counter = 0;
       }
     }
 }
